@@ -1,29 +1,32 @@
 <template>
-  <div id="app">
-    <img alt="Vue logo" src="./assets/logo.png">
-    <HelloWorld msg="Welcome to Your Vue.js + TypeScript App"/>
-  </div>
+    <div id="app" class="vh-100">
+        <b-tabs pills card class="full-height-tabs" nav-wrapper-class="bg-dark rounded-0">
+
+            <b-tab title="Lab 0" active class="p-0" title-link-class="text-white">
+                <lab0/>
+            </b-tab>
+
+            <b-tab title="Lab 1" title-link-class="text-white">
+                <b-card-text>Содержимое первой лабы</b-card-text>
+            </b-tab>
+
+        </b-tabs>
+    </div>
 </template>
 
 <script lang="ts">
-import { Component, Vue } from 'vue-property-decorator';
-import HelloWorld from './components/HelloWorld.vue';
+import {Component, Vue} from 'vue-property-decorator';
+import Lab0 from "@/components/Lab0.vue";
 
 @Component({
-  components: {
-    HelloWorld,
-  },
+    components: {
+        Lab0
+    }
 })
-export default class App extends Vue {}
+export default class App extends Vue {
+}
 </script>
 
 <style lang="scss">
-#app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: #2c3e50;
-  margin-top: 60px;
-}
+
 </style>

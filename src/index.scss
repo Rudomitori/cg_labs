@@ -1,0 +1,21 @@
+// Здесь переопределяются стили Bootstrap
+
+// Должен быть именно такой порядок
+@import "node_modules/bootstrap/scss/bootstrap";
+@import "node_modules/bootstrap-vue/src/index";
+
+// Здесь определяются собственные стили
+.full-height-tabs {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+
+  .tab-content {
+    height: 100%;
+    overflow: auto;
+
+    .tab-pane {
+      height: 100%;
+    }
+  }
+}
