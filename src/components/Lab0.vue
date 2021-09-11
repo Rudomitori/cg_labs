@@ -1,5 +1,5 @@
 <template>
-    <b-container class="h-100" fluid>
+    <b-container class="h-100" fluid="">
         <b-row class="h-100">
             <b-col class="h-100 p-3">
                 <!--#region Canvas resizing -->
@@ -62,7 +62,7 @@ import {getRandomInt, getRandomIntVector} from "@/Utils/Rng";
 
 @Component
 export default class Lab0 extends Vue {
-    public canvasId = "canvas";
+    public readonly canvasId = "lab0-canvas";
     public get canvas() : HTMLCanvasElement {
         return document.getElementById(this.canvasId)! as HTMLCanvasElement;
     }
@@ -216,11 +216,6 @@ export default class Lab0 extends Vue {
 <style scoped lang="scss">
 // Чтобы воспользоваться переменной $spacer
 @import "node_modules/bootstrap/scss/bootstrap";
-
-.source-image {
-    max-height: 100%;
-    max-width: 100%;
-}
 
 .canvas-container {
     display: flex;

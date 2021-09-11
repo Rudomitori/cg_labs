@@ -2,12 +2,12 @@
     <div id="app" class="vh-100">
         <b-tabs pills card class="full-height-tabs" nav-wrapper-class="bg-dark rounded-0">
 
-            <b-tab title="Lab 0" active class="p-0" title-link-class="text-white">
+            <b-tab title="Лаб 0" active class="p-0" title-link-class="text-white">
                 <lab0/>
             </b-tab>
 
-            <b-tab title="Lab 1" title-link-class="text-white">
-                <b-card-text>Содержимое первой лабы</b-card-text>
+            <b-tab title="Лаб 1" class="p-0" title-link-class="text-white">
+                <lab1/>
             </b-tab>
 
         </b-tabs>
@@ -17,16 +17,13 @@
 <script lang="ts">
 import {Component, Vue} from 'vue-property-decorator';
 import Lab0 from "@/components/Lab0.vue";
+import Lab1 from "@/components/Lab1.vue";
 
 @Component({
     components: {
+        Lab1,
         Lab0
     }
 })
-export default class App extends Vue {
-}
+export default class App extends Vue {}
 </script>
-
-<style lang="scss">
-
-</style>
