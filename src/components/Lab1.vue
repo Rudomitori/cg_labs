@@ -5,8 +5,8 @@
                 <!--#region Изменение размера -->
                 <b-form-group>
                     <b-input-group prepend="(x, y):" size="sm" >
-                        <b-form-input type="number" v-model="newCanvasHeight" min="5" step="1"/>
-                        <b-form-input type="number" v-model="newCanvasWidth" min="5" step="1"/>
+                        <b-form-input type="number" @keypress.enter="resizeCanvas" v-model="newCanvasHeight" min="5" step="1"/>
+                        <b-form-input type="number" @keypress.enter="resizeCanvas" v-model="newCanvasWidth" min="5" step="1"/>
                         <b-input-group-append>
                             <b-input-group-text>px</b-input-group-text>
                             <b-button @click="resizeCanvas" :variant="newSizeChanged ? 'primary' : 'secondary'">Обновить</b-button>
@@ -30,6 +30,12 @@
                               variant="danger" size="sm">
                         Удалить точки
                     </b-button>
+                </b-form-group>
+                <!--#endregion -->
+
+                <!--#region Тестовые точки-->
+                <b-form-group>
+                    <b-checkbox v-model="drawDebugPoints">Отрисовывать отладочные точки</b-checkbox>
                 </b-form-group>
                 <!--#endregion -->
 
@@ -132,9 +138,9 @@ export default class Lab1 extends Vue {
         );
     }
 
-    drawPoint(point: Vector2) : void {
+    drawPoint(point: Vector2, color?: string|null) : void {
         const radius = 5;
-        const color = 'red';
+        color = color || 'red';
 
         const context = this.canvas.getContext('2d')!;
         context.strokeStyle = color;
@@ -167,6 +173,12 @@ export default class Lab1 extends Vue {
     //#region Точки сплайна
     /** Точки, через которые должен проходит сплайн */
     public points: Vector2[] = [];
+    public drawDebugPoints = false;
+
+    @Watch('drawDebugPoints')
+    onDrawDebugPointsChanged() : void {
+        this.redraw();
+    }
 
     addPoint(ev: MouseEvent) : void {
         const canvas = this.canvas;
@@ -201,17 +213,22 @@ export default class Lab1 extends Vue {
             this.points[0].copy,
             this.points[1].copy
         ];
-
+        if(this.drawDebugPoints) this.drawPoint(lastCenterA, "black");
         for (let i = 2; i < this.points.length; i++) {
             const centerA = this.points[i].copy
                 .add(this.points[i - 1])
                 .divide(2);
+
+            if(this.drawDebugPoints) this.drawPoint(centerA, "black");
             const length = this.points[i].copy
                 .subtract(this.points[i-1])
                 .length;
+
             const bv = centerA.copy
                 .subtract(lastCenterA)
-                .multiply(lastLength/length/2);
+                .multiply(lastLength/(length+lastLength));
+
+            if(this.drawDebugPoints) this.drawPoint(lastCenterA.copy.add(bv), "yellow");
             anchorPoints[i-2][1].subtract(bv);
             anchorPoints[i-1] = [
                 anchorPoints[i-2][1].copy
@@ -222,6 +239,11 @@ export default class Lab1 extends Vue {
             lastCenterA = centerA;
             lastLength = length;
         }
+        if(this.drawDebugPoints)
+            for (const anchorPoint of anchorPoints) {
+                this.drawPoint(anchorPoint[0], "blue");
+                this.drawPoint(anchorPoint[1], "green");
+            }
 
         return anchorPoints;
 
