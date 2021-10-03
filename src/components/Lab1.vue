@@ -1,7 +1,7 @@
 <template>
-    <b-container class="h-100" fluid="">
-        <b-row class="h-100">
-            <b-col class="h-100 p-3">
+    <div class="container-fluid h-100">
+        <div class="h-100 row">
+            <div class="col h-100 p-3">
                 <!--#region Изменение размера -->
                 <b-form-group>
                     <b-input-group prepend="(x, y):" size="sm" >
@@ -44,12 +44,12 @@
                     <b-button @click="saveImage" size="sm">Сохранить изображение</b-button>
                 </b-form-group>
                 <!--#endregion-->
-            </b-col>
-            <b-col cols="9" class="h-100 bg-secondary canvas-container" >
+            </div>
+            <div class="h-100 bg-secondary canvas-container col-sm-4 col-md-5 col-lg-7 col-xl-9">
                 <canvas :id="canvasId" @click="addPoint"></canvas>
-            </b-col>
-        </b-row>
-    </b-container>
+            </div>
+        </div>
+    </div>
 </template>
 
 <script lang="ts">
@@ -355,9 +355,9 @@ export default class Lab1 extends Vue {
 }
 </script>
 
-<style scoped lang="scss">
+<style lang="scss">
 // Чтобы воспользоваться переменной $spacer
-@import "node_modules/bootstrap/scss/bootstrap";
+@import "../index";
 
 .canvas-container {
     display: flex;

@@ -1,12 +1,12 @@
 <template>
     <div id="app" class="vh-100">
-        <b-tabs pills card class="full-height-tabs" nav-wrapper-class="bg-dark rounded-0">
+        <b-tabs pills card class="full-height-tabs" nav-wrapper-class="bg-dark">
 
-            <b-tab title="Лаб 0" active class="p-0" title-link-class="text-white">
+            <b-tab title="Лаб 0" active class="p-0" title-link-class="text-white" lazy>
                 <lab0/>
             </b-tab>
 
-            <b-tab title="Лаб 1" class="p-0" title-link-class="text-white">
+            <b-tab title="Лаб 1" class="p-0" title-link-class="text-white" lazy>
                 <lab1/>
             </b-tab>
 

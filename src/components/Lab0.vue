@@ -1,7 +1,7 @@
 <template>
-    <b-container class="h-100" fluid="">
-        <b-row class="h-100">
-            <b-col class="h-100 p-3">
+    <div class="container-fluid h-100">
+        <div class="row h-100">
+            <div class="col h-100 p-3">
                 <!--#region Canvas resizing -->
                 <h6>Current canvas size is {{ currentCanvasWidth }}X{{ currentCanvasHeight }}px</h6>
                 <b-form-group>
@@ -47,12 +47,12 @@
                     <b-button @click="drawRandomLine" size="sm">Draw random line</b-button>
                 </b-form-group>
                 <!--#endregion-->
-            </b-col>
-            <b-col cols="9" class="h-100 bg-secondary canvas-container" >
+            </div>
+            <div class="col-9 h-100 bg-secondary canvas-container" >
                 <canvas :id="canvasId"></canvas>
-            </b-col>
-        </b-row>
-    </b-container>
+            </div>
+        </div>
+    </div>
 </template>
 
 <script lang="ts">
@@ -213,9 +213,11 @@ export default class Lab0 extends Vue {
 }
 </script>
 
-<style scoped lang="scss">
+<style  lang="scss">
 // Чтобы воспользоваться переменной $spacer
-@import "node_modules/bootstrap/scss/bootstrap";
+@import "../index";
+
+
 
 .canvas-container {
     display: flex;
