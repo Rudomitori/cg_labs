@@ -38,10 +38,6 @@ export default class Vector2 {
     //#endregion
 
     public get copy() : Vector2 {
-        console.log('copy vector', {
-            x: this.x,
-            y: this.y
-        });
         return new Vector2(this.x, this.y);
     }
 }
