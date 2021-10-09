@@ -43,6 +43,12 @@
                 </b-form-group>
                 <!--#endregion-->
 
+                <!--#region Использовать фильтрацию-->
+                <b-form-group>
+                    <b-checkbox v-model="useFiltration">Использовать фильтрацию</b-checkbox>
+                </b-form-group>
+                <!--#endregion -->
+
                 <!--#region Списки точек-->
                 <div v-if="sourcePoints.length" class="mb-3">
                     <h5 >Точки на исходном изображении</h5>
@@ -110,7 +116,8 @@ export default class Lab2 extends Vue {
     // иначе компонент будет работать не с тем элементом
     /** Id канваса с исходным изображением */
     readonly sourceCanvasId = "lab2-source-canvas";
-    readonly resultCanvasId = "lab2-result-canvas"
+    readonly resultCanvasId = "lab2-result-canvas";
+    useFiltration = true;
 
     get sourceCanvas() : HTMLCanvasElement {
         return document.getElementById(this.sourceCanvasId)! as HTMLCanvasElement;
@@ -196,11 +203,12 @@ export default class Lab2 extends Vue {
     //#endregion
 
     //#region Итоговое изображение
-    calculateResultImage():void {
-        console.log("Расчёт");
 
+    calculateResultImage():void {
         if(this.sourcePoints.length < 3 || this.resultPoints.length < 3)
             throw "Недостаточно точек";
+
+        this.drawSourceImage();
 
         // https://www.school30.spb.ru/cgsg/cgc2018/CGC2018_03_CGMath.pdf
         // 17 слайд
@@ -260,30 +268,117 @@ export default class Lab2 extends Vue {
         const resultContext = resultCanvas.getContext('2d')!;
         const resultImageData = resultContext.getImageData(0, 0, resultWidth, resultHeight);
 
+
+        /** Получить индекс начала пикселя в исходном изображении */
+        const getSourceI = (x: number, y: number) => y * (sourceWidth * 4) + x * 4;
+        /** Получить индекс начала пикселя в итоговом изображении */
+        const getResultI = (x: number, y: number) => y * (resultWidth * 4) + x * 4;
+
         for(let x = 0; x < resultWidth; x++) {
             for (let y = 0; y < resultHeight; y++) {
                 const resultX = x + resultCanvasOffset[0];
-                const resultY = y + resultCanvasOffset[1]
-                let [sourceX, sourceY] = multiplyMatrixToMatrix([[resultX], [resultY], [1]], inverseA)
-                    .map(v => v[0]);
-                sourceX = Math.round(sourceX);
-                sourceY = Math.round(sourceY);
+                const resultY = y + resultCanvasOffset[1];
+                const resultPoints = [
+                    [resultX, resultX + 1, resultX],
+                    [resultY, resultY, resultY + 1],
+                    [1, 1, 1, 1]
+                ];
+                const sourcePoints = multiplyMatrixToMatrix(resultPoints, inverseA);
+                let [sourceX, sourceY] = sourcePoints.map(v => v[0]);
 
-                if (sourceX < 0 || sourceX >= sourceWidth
-                    || sourceY < 0 || sourceY >= sourceHeight) {
-                    continue;
+                /** Коэффициент уменьшения изображения по x */
+                const xK = new Vector2(sourceX, sourceY).subtract(new Vector2(sourcePoints[0][1], sourcePoints[1][1]))
+                    .length;
+                /** Коэффициент уменьшения изображения по y */
+                const yK = new Vector2(sourceX, sourceY).subtract(new Vector2(sourcePoints[0][2], sourcePoints[1][2]))
+                    .length;
+                /** Коэффициент уменьшения изображения */
+                const k = (xK+yK)/2;
+
+                /** Индекс начала пикселя в итоговом изображении */
+                const resultI = getResultI(x, y);
+                if(!this.useFiltration) {
+                    sourceX = Math.round(sourceX);
+                    sourceY = Math.round(sourceY);
+
+                    if (sourceX < 0 || sourceX >= sourceWidth
+                        || sourceY < 0 || sourceY >= sourceHeight) {
+                        continue;
+                    }
+
+                    const sourceI = getSourceI(sourceX, sourceY);
+
+                    resultImageData.data[resultI] = sourceImageData.data[sourceI];
+                    resultImageData.data[resultI+1] = sourceImageData.data[sourceI+1];
+                    resultImageData.data[resultI+2] = sourceImageData.data[sourceI+2];
+                    resultImageData.data[resultI+3] = sourceImageData.data[sourceI+3];
+                } else if (k < 1) {
+                    // Билинейная фильтрация
+                    const arr = [
+                        [Math.floor(sourceX), Math.floor(sourceY)],
+                        [Math.ceil(sourceX), Math.floor(sourceY)],
+                        [Math.floor(sourceX), Math.ceil(sourceY)],
+                        [Math.ceil(sourceX), Math.ceil(sourceY)]
+                    ];
+                    for (let v of arr) {
+                        if (v[0] < 0 || v[0] >= sourceWidth || v[1] < 0 || v[1] >= sourceHeight) {
+                            v[0] = 0;
+                            v[1] = 0;
+                            v[2] = 0;
+                        } else {
+                            v[2] = (1 - Math.abs(v[0] - sourceX)) * (1 - Math.abs(v[1] - sourceY));
+                        }
+                    }
+
+                    for (let i = 0; i < 4; i++) {
+                        resultImageData.data[resultI+i] =
+                            sourceImageData.data[getSourceI(arr[0][0], arr[0][1])+i] * arr[0][2] +
+                            sourceImageData.data[getSourceI(arr[1][0], arr[1][1])+i] * arr[1][2] +
+                            sourceImageData.data[getSourceI(arr[2][0], arr[2][1])+i] * arr[2][2] +
+                            sourceImageData.data[getSourceI(arr[3][0], arr[3][1])+i] * arr[3][2];
+                    }
+                } else {
+                    //Трилинейная фильтрация
+                    if (sourceX < 0 || sourceX >= sourceWidth
+                        || sourceY < 0 || sourceY >= sourceHeight) {
+                        continue;
+                    }
+
+                    const m = Math.pow(2, Math.floor(Math.log2(k)));
+                    const m2 = 2*m;
+                    const flooredSourceXm = Math.floor(sourceX/m) * m;
+                    const flooredSourceYm = Math.floor(sourceY/m) * m;
+                    const flooredSourceXm2 = Math.floor(sourceX/m2) * m2;
+                    const flooredSourceYm2 = Math.floor(sourceY/m2) * m2;
+                    for (let i = 0; i < 4; i++) {
+                        let colorM = 0;
+                        for (let j = 0; j < m; j++) {
+                            for (let l = 0; l < m; l++) {
+                                const index = getSourceI(
+                                    flooredSourceXm + j,
+                                    flooredSourceYm + l
+                                );
+                                colorM += sourceImageData.data[i + index];
+                            }
+                        }
+                        colorM /= m*m;
+                        let colorM2 = 0;
+                        for (let j = 0; j < m2; j++) {
+                            for (let l = 0; l < m2; l++) {
+                                colorM2 += sourceImageData.data[i + getSourceI(
+                                    flooredSourceXm2 + j,
+                                    flooredSourceYm2 + l
+                                )]
+                            }
+                        }
+                        colorM2 /= m2*m2;
+                        resultImageData.data[resultI+i] = (colorM*(m2-k) + colorM2*(k-m))/m;
+                    }
                 }
-
-                const resultI = y * (resultWidth * 4) + x * 4;
-                const sourceI = sourceY * (sourceWidth * 4) + sourceX * 4;
-
-                resultImageData.data[resultI] = sourceImageData.data[sourceI];
-                resultImageData.data[resultI+1] = sourceImageData.data[sourceI+1];
-                resultImageData.data[resultI+2] = sourceImageData.data[sourceI+2];
-                resultImageData.data[resultI+3] = sourceImageData.data[sourceI+3];
             }
         }
 
+        this.redraw();
         resultContext.putImageData(resultImageData, 0, 0);
     }
 
